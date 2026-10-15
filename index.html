@@ -1,0 +1,214 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Binary Turing Machine Simulator</title>
+  <meta name="description" content="An interactive, single-page Binary Turing Machine Simulator for binary increment (+1) operation.">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Fira+Code:wght@400;500;600;700&family=Outfit:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <!-- Ambient background glow elements -->
+  <div class="bg-glow bg-glow-1"></div>
+  <div class="bg-glow bg-glow-2"></div>
+
+  <div class="app-container">
+    <!-- Header -->
+    <header class="main-header">
+      <div class="header-brand">
+        <div class="brand-badge">TOC SIMULATOR</div>
+        <div>
+          <h1>Binary Turing Machine Simulator</h1>
+          <p class="subtitle">Increments a binary number by 1 using formal Turing Machine logic: (w + 1)₂</p>
+        </div>
+      </div>
+    </header>
+
+    <!-- SECTION 1: Input & Presets & Control Bar -->
+    <div class="glass-card controls-card">
+      <div class="input-and-presets">
+        <!-- Input row -->
+        <div class="input-group">
+          <label for="binaryInput"><strong>Binary Input:</strong></label>
+          <div class="input-wrapper">
+            <input type="text" id="binaryInput" value="1011" maxlength="16" placeholder="e.g. 1011" spellcheck="false" autocomplete="off">
+            <button id="clearInputBtn" class="clear-btn" title="Clear input">&times;</button>
+          </div>
+          <button id="loadBtn" class="btn btn-primary">
+            <span>📥 Load</span>
+          </button>
+        </div>
+
+        <!-- Preset Samples (Required) -->
+        <div class="presets-row">
+          <span class="presets-title">Sample Inputs:</span>
+          <div class="presets-list">
+            <button class="preset-btn" data-input="1011">1011 → 1100</button>
+            <button class="preset-btn" data-input="111">111 → 1000</button>
+            <button class="preset-btn" data-input="10010">10010 → 10011</button>
+          </div>
+        </div>
+      </div>
+
+      <div class="divider-line"></div>
+
+      <!-- Action Buttons & Playback -->
+      <div class="playback-bar">
+        <div class="action-buttons">
+          <button id="runBtn" class="btn btn-success btn-lg">
+            <span id="runIcon">▶</span> <span id="runText">Run</span>
+          </button>
+          <button id="pauseBtn" class="btn btn-warning">
+            <span>⏸ Pause</span>
+          </button>
+          <button id="stepBtn" class="btn btn-primary" title="Execute single step">
+            <span>⏭ Step</span>
+          </button>
+          <button id="resetBtn" class="btn btn-danger" title="Reset to start">
+            <span>↺ Reset</span>
+          </button>
+        </div>
+
+        <div class="speed-and-step">
+          <div class="speed-box">
+            <label for="speedSlider">Speed:</label>
+            <input type="range" id="speedSlider" min="100" max="1000" step="50" value="450">
+            <span id="speedLabel" class="speed-label">450ms</span>
+          </div>
+
+          <div class="step-badge-box">
+            <span class="step-label">Step:</span>
+            <span id="currentStepDisplay" class="step-num">0</span>
+            <span class="slash">/</span>
+            <span id="totalStepDisplay" class="total-num">0</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- SECTION 2: Turing Machine Tape & Head Visualization -->
+    <div class="glass-card tape-card">
+      <div class="tape-card-header">
+        <div class="tape-title-group">
+          <h2>Turing Machine Tape</h2>
+          <span class="tape-info">Alphabet: <code>{0, 1, ␣}</code> (␣ = Blank)</span>
+        </div>
+        <button id="centerHeadBtn" class="btn btn-sm btn-outline">🎯 Center Head</button>
+      </div>
+
+      <!-- Tape Viewport -->
+      <div class="tape-viewport" id="tapeViewport">
+        <!-- Floating Animated Head -->
+        <div class="tape-head" id="tapeHead">
+          <div class="head-badge" id="headStateBadge">q0</div>
+          <div class="head-pointer">▼</div>
+        </div>
+        <!-- Tape Track with Cells -->
+        <div class="tape-track" id="tapeTrack"></div>
+      </div>
+
+      <!-- Live Machine Status Bar -->
+      <div class="live-status-bar">
+        <div class="status-box">
+          <span class="stat-lbl">CURRENT STATE</span>
+          <span class="stat-val state-val" id="statState">q0</span>
+        </div>
+        <div class="status-box">
+          <span class="stat-lbl">HEAD POSITION</span>
+          <span class="stat-val" id="statHeadPos">0</span>
+        </div>
+        <div class="status-box">
+          <span class="stat-lbl">READ SYMBOL</span>
+          <span class="stat-val" id="statReadSymbol">1</span>
+        </div>
+        <div class="status-box">
+          <span class="stat-lbl">CARRY</span>
+          <span class="stat-val" id="statCarry">0</span>
+        </div>
+        <div class="status-box">
+          <span class="stat-lbl">ACTION (WRITE, MOVE)</span>
+          <span class="stat-val action-val" id="statAction">Write 1, R</span>
+        </div>
+        <div class="status-box result-box">
+          <span class="stat-lbl">TAPE VALUE</span>
+          <span class="stat-val result-val" id="statResult">1011</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- SECTION 3: Two Columns (Dry Run Table + Transition Table) -->
+    <div class="two-columns-layout">
+      
+      <!-- Left Column: Dry Run / Step Trace -->
+      <div class="glass-card table-card">
+        <div class="card-header">
+          <h3>📋 Dry Run (Step-by-Step Trace)</h3>
+          <span class="card-caption">All steps with tape values, state, head, read/write, and carry</span>
+        </div>
+        <div class="table-scroll">
+          <table class="data-table" id="dryRunTable">
+            <thead>
+              <tr>
+                <th>Step</th>
+                <th>State</th>
+                <th>Head</th>
+                <th>Read</th>
+                <th>Write, Move</th>
+                <th>Next</th>
+                <th>Carry</th>
+                <th>Tape String</th>
+                <th>Explanation</th>
+              </tr>
+            </thead>
+            <tbody id="dryRunTableBody">
+              <!-- Dynamically populated rows -->
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- Right Column: Transition Table -->
+      <div class="glass-card table-card">
+        <div class="card-header">
+          <h3>⚙️ Transition Table δ(q, σ)</h3>
+          <span class="card-caption">Formal transition rules for binary increment (+1)</span>
+        </div>
+        <div class="table-scroll">
+          <table class="data-table" id="transitionTable">
+            <thead>
+              <tr>
+                <th>Rule</th>
+                <th>State (q)</th>
+                <th>Read (σ)</th>
+                <th>Write (σ')</th>
+                <th>Move (D)</th>
+                <th>Next (q')</th>
+                <th>Operation Logic</th>
+              </tr>
+            </thead>
+            <tbody id="transitionTableBody">
+              <!-- Dynamically populated rules -->
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- Footer -->
+    <footer class="main-footer">
+      <div>Theory of Computation &bull; <strong>Binary Increment Turing Machine</strong></div>
+      <div class="shortcuts">
+        Shortcuts: <kbd>Space</kbd> Run/Pause &bull; <kbd>→</kbd> Step &bull; <kbd>R</kbd> Reset
+      </div>
+    </footer>
+  </div>
+
+  <div id="toastContainer" class="toast-container"></div>
+
+  <script src="script.js"></script>
+</body>
+</html>
