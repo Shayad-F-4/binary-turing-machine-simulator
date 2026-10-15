@@ -435,9 +435,15 @@ class SinglePageTMSimulator {
 
     // 2. State & Colors
     this.el.statState.textContent = item.state;
-    this.el.statState.style.color = STATE_COLORS[item.state] || '#38bdf8';
+    this.el.statState.style.color = STATE_COLORS[item.state] || 'var(--color-q0)';
     this.el.headStateBadge.textContent = item.state;
     this.el.headStateBadge.style.background = STATE_COLORS[item.state] || 'var(--color-q0)';
+    this.el.headStateBadge.style.color = '#ffffff';
+
+    const pointer = this.el.tapeHead.querySelector('.head-pointer');
+    if (pointer) {
+      pointer.style.color = STATE_COLORS[item.state] || 'var(--color-q0)';
+    }
 
     // 3. Head Position & Scanned Symbol
     this.el.statHeadPos.textContent = item.head;
@@ -454,7 +460,7 @@ class SinglePageTMSimulator {
     } else {
       const writeDisp = item.write === BLANK ? DISPLAY_BLANK : item.write;
       this.el.statAction.textContent = `Write ${writeDisp}, ${item.move}`;
-      this.el.statAction.style.color = '#cbd5e1';
+      this.el.statAction.style.color = 'var(--text-main)';
     }
 
     // 6. Live Result on Tape
@@ -546,14 +552,14 @@ class SinglePageTMSimulator {
 
       tr.innerHTML = `
         <td><strong>#${row.step}</strong></td>
-        <td style="color:${STATE_COLORS[row.state] || '#fff'}">${row.state}</td>
+        <td style="color:${STATE_COLORS[row.state] || 'var(--text-main)'}; font-weight: 600;">${row.state}</td>
         <td>${row.head}</td>
         <td><code>${readDisp}</code></td>
         <td>${actionText}</td>
-        <td style="color:${STATE_COLORS[row.nextState] || '#fff'}">${row.nextState}</td>
+        <td style="color:${STATE_COLORS[row.nextState] || 'var(--text-main)'}; font-weight: 600;">${row.nextState}</td>
         <td>${row.carry}</td>
         <td>${tapeDisp}</td>
-        <td style="font-size: 0.78rem; color: var(--text-secondary);">${row.explanation}</td>
+        <td style="font-size: 0.78rem; color: var(--text-sub);">${row.explanation}</td>
       `;
 
       // Interactive jump-to-step on row click
@@ -622,13 +628,13 @@ class SinglePageTMSimulator {
       const writeDisp = r.write === BLANK ? `${DISPLAY_BLANK} (Blank)` : r.write;
 
       tr.innerHTML = `
-        <td><strong style="color:var(--brand-cyan);">${r.id}</strong></td>
-        <td style="color:${STATE_COLORS[r.state]}">${r.state}</td>
+        <td><strong style="color:var(--color-q0);">${r.id}</strong></td>
+        <td style="color:${STATE_COLORS[r.state]}; font-weight: 600;">${r.state}</td>
         <td><code>${readDisp}</code></td>
         <td><code>${writeDisp}</code></td>
         <td><strong>${r.move}</strong></td>
-        <td style="color:${STATE_COLORS[r.next]}">${r.next}</td>
-        <td style="font-size: 0.78rem; color: var(--text-secondary);">${r.desc}</td>
+        <td style="color:${STATE_COLORS[r.next]}; font-weight: 600;">${r.next}</td>
+        <td style="font-size: 0.78rem; color: var(--text-sub);">${r.desc}</td>
       `;
       this.el.transitionTableBody.appendChild(tr);
     });
